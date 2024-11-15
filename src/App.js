@@ -1,24 +1,30 @@
-import logo from './logo.svg';
-import './App.css';
+import React, { useState } from 'react';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import RoleSelection from './components/RoleSelection';
+import ChiefDashboard from './components/ChiefDashboard';
+import PublicDashboard from './components/PublicDashboard';
+import Teaser from './components/Teaser';
+import PostForm from './components/PostForm';
 
 function App() {
+  const [teaserEnded, setTeaserEnded] = useState(false);
+
+  const handleTeaserEnd = () => {
+    setTeaserEnded(true);
+  };
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <Router>
+      <Routes>
+        <Route
+          path="/"
+          element={!teaserEnded ? <Teaser onTeaserEnd={handleTeaserEnd} /> : <RoleSelection />}
+        />
+        <Route path="/chief/*" element={<ChiefDashboard />} />
+        <Route path="/public" element={<PublicDashboard />} />
+        <Route path="/add-post" element={<PostForm />} />
+      </Routes>
+    </Router>
   );
 }
 
