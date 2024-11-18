@@ -1,19 +1,20 @@
 import React, { useEffect, useState } from 'react';
-import { Routes, Route } from 'react-router-dom';
 import axios from 'axios';
 
 const PublicDashboard = () => {
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [expandedPost, setExpandedPost] = useState(null); // Track expanded posts
+  const [expandedPost, setExpandedPost] = useState(null);
+  const [showModal, setShowModal] = useState(false); // For toggling modal visibility
+  const [name, setName] = useState('');
+  const [issue, setIssue] = useState('');
 
   // Fetch posts when the component mounts
   useEffect(() => {
     axios
       .get('http://127.0.0.1:8000/api/announcements/')
       .then((response) => {
-        console.log(response.data);
         setPosts(response.data.data);
         setLoading(false);
       })
@@ -25,29 +26,33 @@ const PublicDashboard = () => {
 
   // Function to limit text to a specific number of characters
   const limitText = (text, limit) => {
-    if (text.length > limit) {
-      return text.substring(0, limit) + '...';
-    }
-    return text;
+    return text.length > limit ? text.substring(0, limit) + '...' : text;
   };
 
   // Handle the click to toggle post visibility
   const handleReadMore = (postId) => {
-    setExpandedPost(expandedPost === postId ? null : postId); // Toggle the expanded state
+    setExpandedPost(expandedPost === postId ? null : postId);
   };
 
-  if (loading) {
-    return <div>Loading...</div>;
-  }
+  // Handle the form submission
+  const handleSubmitIssue = (e) => {
+    e.preventDefault();
+    console.log('Name:', name);
+    console.log('Issue:', issue);
+    // You can submit the issue to an API or perform other actions here
 
-  if (error) {
-    return <div>{error}</div>;
-  }
+    // Close the modal after submission
+    setShowModal(false);
+    setName('');
+    setIssue('');
+  };
+
+  if (loading) return <div>Loading...</div>;
+  if (error) return <div>{error}</div>;
 
   return (
     <div className="flex flex-col p-6">
       <h2 className="text-3xl font-semibold mb-6 ml-[35%]">Announcements</h2>
-      
       {/* Card display of posts */}
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
         {posts.length > 0 ? (
@@ -56,7 +61,7 @@ const PublicDashboard = () => {
               {/* Image */}
               {post.image && (
                 <img
-                  src={`http://127.0.0.1:8000${post.image}`} // Concatenate with the API base URL
+                  src={`http://127.0.0.1:8000${post.image}`}
                   alt={post.title}
                   className="w-full h-56 object-cover rounded-md"
                 />
@@ -86,6 +91,63 @@ const PublicDashboard = () => {
           <p>No posts available.</p>
         )}
       </div>
+
+      {/* Floating Button */}
+      <button
+        onClick={() => setShowModal(true)}
+        className="fixed bottom-8 right-8 bg-blue-500 text-white p-4 rounded-full shadow-lg hover:bg-blue-600"
+      >
+        Raise an Issue
+      </button>
+
+      {/* Modal for submitting an issue */}
+      {showModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
+          <div className="bg-white p-6 rounded-lg w-96 relative">
+            {/* Close Button for Modal (Only here inside the Modal) */}
+            <button
+              onClick={() => setShowModal(false)}
+              className="absolute top-2 right-2 text-black font-bold text-lg"
+            >
+              X
+            </button>
+
+            <h2 className="text-2xl font-semibold mb-4">Report an Issue</h2>
+            <form onSubmit={handleSubmitIssue}>
+              <div className="mb-4">
+                <label htmlFor="name" className="block text-gray-700">Name</label>
+                <input
+                  type="text"
+                  id="name"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  className="w-full p-2 border rounded-md mt-2"
+                  required
+                />
+              </div>
+              <div className="mb-4">
+                <label htmlFor="issue" className="block text-gray-700">Issue</label>
+                <textarea
+                  id="issue"
+                  value={issue}
+                  onChange={(e) => setIssue(e.target.value)}
+                  className="w-full p-2 border rounded-md mt-2"
+                  rows="4"
+                  required
+                />
+              </div>
+              <div className="flex justify-end">
+                <button
+                  type="submit"
+                  className="bg-blue-500 text-white p-2 rounded-md hover:bg-blue-600"
+                >
+                  Submit
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
